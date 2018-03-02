@@ -1,57 +1,20 @@
 import argparse
 import argparse
 import logging
+from hashlib import md5, sha1
 
 
 # http://codekata.com/kata/kata05-bloom-filters/
 
-
-class BloomFilter:
-    CHUNK_SIZE = 1024
-    MIN_SIZE = 2
-    NOT_SET = 0
-
-    def __init__(self, size=CHUNK_SIZE):
-        self.lookup = {}
-        self.size = max(size, BloomFilter.MIN_SIZE)
-        # self.bits = [False] * self.size
-        self.bits = bytearray(self.size)
-        self.pointer = self.NOT_SET + 1
-        pass
-
-    def add(self, item):
-        if not self.contains(item):
-            self.lookup[self.hash(item)] = self.pointer
-            self.__set_bit(self.pointer)
-            # self.bits[self.pointer] = True
-            self.pointer += 1
-            if self.pointer >= len(self.bits):
-                self.__grow_bits()
-
-    def __set_bit(self, index):
-        self.bits[self.pointer] = 1
-
-    def __grow_bits(self):
-        self.bits.extend([False] * self.size)
-
-    def contains(self, term):
-        key = self.hash(term)
-        index = self.lookup.get(key, self.NOT_SET)
-        return self.bits[index] is not 0
-
-    def hash(self, term):
-        return term
-
-
 class ByteBits:
-    CHUNK_SIZE = 1024
-    MIN_SIZE = 2
+    CHUNK_SIZE = 10#0#1024
 
     def __init__(self, size):
-        self.size = max(size, BooleanBits.MIN_SIZE)
+        MIN_SIZE = 2
+        self.size = max(size, MIN_SIZE)
         self.bits = bytearray(self.size)
 
-    def is_set(self, index):
+    def contains(self, index):
         if index < len(self.bits):
             return self.bits[index] is not 0
         return False
@@ -63,12 +26,87 @@ class ByteBits:
 
         self.bits[index] = 1
 
+    def __grow_bits(self, chunk_size=0):
+        if chunk_size <= 0:
+            chunk_size = ByteBits.CHUNK_SIZE
 
-    def __grow_bits(self, chunk_size=None):
-        if chunk_size is None:
-            chunk_size = self.size
+        self.bits.extend(bytearray(chunk_size))
 
-        self.bits += bytearray(chunk_size)
+    def __len__(self):
+        return len(self.bits)
+
+    def num_set(self):
+        return sum(b for b in self.bits)
+
+
+class BloomFilter:
+    NOT_SET = 0
+
+    def __init__(self, vector_type=ByteBits, size=0):
+        self.lookup = {}
+        self.bitvector = vector_type(size)
+        self.pointer = self.NOT_SET + 1
+        pass
+
+    def add(self, item):
+        indices = self.indexes(item)
+        for key, value in indices.items():
+            if value is BloomFilter.NOT_SET:
+                value = self.pointer
+                self.lookup[key] = value
+                self.pointer += 1
+            self.bitvector.set(value)
+        return
+        if not self.contains(item):
+            self.lookup[self.hash(item)] = self.pointer
+            self.bitvector.set(self.pointer)
+            self.pointer += 1
+
+    def contains(self, term):
+        indices = self.indexes(term).values()
+        if BloomFilter.NOT_SET in indices:
+            return False
+        return all(self.bitvector.contains(index) for index in indices)
+
+    def indexes(self, term):
+        keys = self.hash(term)
+        return { key:self.lookup.get(key,self.NOT_SET) for key in keys }
+
+    @classmethod
+    def hash(cls, term):
+        term = term.encode('utf-8')
+        masher=md5(term).hexdigest()
+        shanana = sha1(term).hexdigest()
+        #hasher.update(term.encode('utf-8'))
+
+        return (masher[-2:], shanana[-2:])
+
+
+class BooleanBits:
+    def __init__(self, size=0):
+        MIN_SIZE = 2
+        CHUNK_SIZE = 1024
+
+        self.bits = []
+        if size:
+            self.size = max(size, MIN_SIZE)
+        else:
+            size = CHUNK_SIZE
+        self.__grow_bits(self.size)
+
+    def contains(self, index):
+        if index < len(self.bits):
+            return self.bits[index]
+        return False
+
+    def set(self, index):
+        self.bits[index] = True
+
+    def __grow_bits(self):
+        self.bits.extend([False] * self.size)
+
+    def __len__(self):
+        return len(self.bits)
 
 
 if __name__ == '__main__':
@@ -97,4 +135,4 @@ if __name__ == '__main__':
             except AssertionError as e:
                 logging.error("Filter is missing ", term)
 
-    logging.debug("Final lookup table size:{}\nFinal bit len:{}\n".format(len(bloom.lookup), len(bloom.bits)))
+    logging.debug("Final lookup table size:{}\nFinal bit len:{}\n".format(len(bloom.lookup), len(bloom.bitvector)))
