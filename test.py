@@ -26,7 +26,6 @@ def test_vector_resizes_when_capacity_is_reached():
 def test_add_and_contains():
     bf = BloomFilter(size=4)
     assert not bf.contains('one')
-
     bf.add('one')
     assert bf.contains('one')
 

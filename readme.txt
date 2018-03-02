@@ -8,7 +8,8 @@ RUN:
 Written in Python 3.6.  Lower 3x versions of python should be ok.
 To run:
     python3 bloom_filter.py wordlist.txt
-
+Tests:
+    pytest test.py
 
 
 APPROACH:
@@ -99,6 +100,9 @@ It's probably not a win, but I'm curious.
 
 Could I get the same results by taking the first and last N characters of a single hash?  I'd have two keys for the cost of one hash. 
 Are they different enough to give the same kind of random variety as two hashes?
+
+If I wanted to experiment with different hashes, I'd add a field to BloomFilter
+for hash functions, and make the hash method iterate through them.
 
 
 

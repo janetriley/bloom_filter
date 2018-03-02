@@ -42,7 +42,8 @@ class ByteBitVector:
 
 
 class BloomFilter:
-    NOT_SET = 0
+
+    NOT_SET = 0 # Leave the first bit as unset, as a default for the getter.
 
     def __init__(self, vector_type=ByteBitVector, size=0):
         self.lookup = {}
@@ -71,7 +72,13 @@ class BloomFilter:
         return all(index in self.bitvector for index in indices)
 
     def indexes(self, term):
+        # Get the bit vector indexes for the hash term
+
         keys = self.hash(term)
+        # The first bit in the vector was left false,
+        # to serve as a default value for missing terms
+        # rather than 'if None, ...'
+        # for speed.  The theory should be tested to see if it's worth the extra mental complexity.
         return {key: self.lookup.get(key, self.NOT_SET) for key in keys}
 
     @classmethod
