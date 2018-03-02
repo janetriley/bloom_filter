@@ -1,48 +1,50 @@
 import argparse
-import argparse
 import logging
 from hashlib import md5, sha1
+from sys import getsizeof
 
 
-# http://codekata.com/kata/kata05-bloom-filters/
-
-class ByteBits:
-    CHUNK_SIZE = 10#0#1024
+class ByteBitVector:
+    """ A bit vector backed by a bytearray """
+    GROW_BY = 10  # 100 #1024
 
     def __init__(self, size):
         MIN_SIZE = 2
         self.size = max(size, MIN_SIZE)
-        self.bits = bytearray(self.size)
+        self.bits = bytearray()
+        self.__grow_bits(self.size)
 
-    def contains(self, index):
-        if index < len(self.bits):
-            return self.bits[index] is not 0
-        return False
 
     def set(self, index):
+        """ Add an element to the bit vector """
         if index >= len(self.bits):
             self.__grow_bits(chunk_size=(index - len(self.bits)))
             logging.debug("Bit array was too small, grew to {}".format(len(self.bits)))
 
         self.bits[index] = 1
 
-    def __grow_bits(self, chunk_size=0):
-        if chunk_size <= 0:
-            chunk_size = ByteBits.CHUNK_SIZE
+    def num_set(self):
+        return sum(b for b in self.bits)
 
-        self.bits.extend(bytearray(chunk_size))
+    def __contains__(self, index):
+        if index < len(self.bits):
+            return self.bits[index] == 1
+        return False
+
+    def __grow_bits(self, chunk_size=0):
+
+        if chunk_size <= 0:
+            chunk_size = ByteBitVector.GROW_BY
+        self.bits+= bytearray(chunk_size)
 
     def __len__(self):
         return len(self.bits)
-
-    def num_set(self):
-        return sum(b for b in self.bits)
 
 
 class BloomFilter:
     NOT_SET = 0
 
-    def __init__(self, vector_type=ByteBits, size=0):
+    def __init__(self, vector_type=ByteBitVector, size=0):
         self.lookup = {}
         self.bitvector = vector_type(size)
         self.pointer = self.NOT_SET + 1
@@ -66,40 +68,40 @@ class BloomFilter:
         indices = self.indexes(term).values()
         if BloomFilter.NOT_SET in indices:
             return False
-        return all(self.bitvector.contains(index) for index in indices)
+        return all(index in self.bitvector for index in indices)
 
     def indexes(self, term):
         keys = self.hash(term)
-        return { key:self.lookup.get(key,self.NOT_SET) for key in keys }
+        return {key: self.lookup.get(key, self.NOT_SET) for key in keys}
 
     @classmethod
     def hash(cls, term):
         term = term.encode('utf-8')
-        masher=md5(term).hexdigest()
-        shanana = sha1(term).hexdigest()
-        #hasher.update(term.encode('utf-8'))
+        md5_hash = md5(term).hexdigest()
+        sha_hash = sha1(term).hexdigest()
 
-        return (masher[-2:], shanana[-2:])
+        return (md5_hash[-2:], sha_hash[-2:])
 
 
 class BooleanBits:
     def __init__(self, size=0):
         MIN_SIZE = 2
-        CHUNK_SIZE = 1024
+        GROW_BY = 1024
 
         self.bits = []
         if size:
             self.size = max(size, MIN_SIZE)
         else:
-            size = CHUNK_SIZE
+            size = GROW_BY
         self.__grow_bits(self.size)
 
-    def contains(self, index):
+    def __contains__(self, index):
         if index < len(self.bits):
             return self.bits[index]
         return False
 
     def set(self, index):
+        # set a value
         self.bits[index] = True
 
     def __grow_bits(self):
@@ -110,29 +112,30 @@ class BooleanBits:
 
 
 if __name__ == '__main__':
-
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="A bloom filter. ")
     parser.add_argument("-d", "--debug", help="print debug messages",
                         action="store_true")
-    parser.add_argument("wordlist", help="where to load the words from")
+    parser.add_argument("wordlist", help="filepath to the word list.")
 
     args = parser.parse_args()
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
     bloom = BloomFilter()
+    false_positives =0
     logging.debug('loading {}'.format(args.wordlist))
     with open(args.wordlist, 'r', encoding='iso-8859-1') as fp:
         for line in fp:
-            bloom.add(line.strip())
+            line = line.strip()
+            already_there = bloom.contains(line)
+            if already_there:
+                false_positives += 1
+            bloom.add(line)
 
-    logging.debug('verifying words')
-    with open(args.wordlist, 'r', encoding='iso-8859-1') as fp:
-        for line in fp:
-            term = line.strip()
-            try:
-                assert bloom.contains(term)
-            except AssertionError as e:
-                logging.error("Filter is missing ", term)
 
-    logging.debug("Final lookup table size:{}\nFinal bit len:{}\n".format(len(bloom.lookup), len(bloom.bitvector)))
+    print('Num false positives: ', false_positives)
+    print('sys.getsizeof filter:', getsizeof(bloom))
+    print('size of lookup table:', getsizeof(bloom.lookup))
+    print('keys in lookup:', len(bloom.lookup))
+    print('sizeof bitvector:', getsizeof(bloom.bitvector.bits))
+    print('num bits set in vector:', bloom.bitvector.num_set())

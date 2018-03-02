@@ -1,6 +1,10 @@
 
+Some cut-and-paste notes as I changed implementation.
 
-switched bits to a bytearray instead of list of bool:
+
+
+#switched bits from boolean list to a bytearray:
+#lookup dict dropped to ~1/3 N
 
 ============================= test session starts ==============================
 platform darwin -- Python 3.6.1, pytest-3.4.1, py-1.5.2, pluggy-0.6.0
@@ -10,6 +14,7 @@ test.py ....Counter({'False': 338882})
 56 <- size of bloom (a couple pointers)
 10485864 <- size of lookup dict
   400057 <- sys.getsizeof bits array
+
 
 
 
@@ -24,12 +29,6 @@ num bits needed: 377522
 num bits set: 338882
 
 
-Composition: break out the bits part
-
-
-Installation notes
-https://pypi.python.org/pypi/mmh3/2.2
-dump requirements
 
 # Added in md5 hash instead of returning self
 platform darwin -- Python 3.6.1, pytest-3.4.1, py-1.5.2, pluggy-0.6.0
@@ -43,7 +42,7 @@ num bitvector set: 338882
 
 no improvement
 
-moving chunk size down to 100 instead of 1024 drops the bitvector size a bit:
+# moving bit vector chunk size down to 100 instead of 1024 drops the bitvector size a bit:
 ============================= test session starts ==============================
 platform darwin -- Python 3.6.1, pytest-3.4.1, py-1.5.2, pluggy-0.6.0
 rootdir: /Users/me/workspace/in_github/semantic_machines, inifile:
@@ -54,6 +53,34 @@ size of lookup: 10485864
 num bitvector needed: 366812
 num bitvector set: 338882
 .
+
+
+## changed digest to hexdigest and trimmed to last 5
+
+platform darwin -- Python 3.6.1, pytest-3.4.1, py-1.5.2, pluggy-0.6.0
+rootdir: /Users/me/workspace/in_github/semantic_machines, inifile:
+collected 6 items
+test.py .....Counter({'False': 289682, 'True': 49200})
+size of filter: 56
+size of lookup: 10485864
+keys in lookup: 289682
+num bitvector needed: 317462
+num bitvector set: 289682
+.
+
+## use last 6 characters of hash:
+============================= test session starts ==============================
+platform darwin -- Python 3.6.1, pytest-3.4.1, py-1.5.2, pluggy-0.6.0
+rootdir: /Users/me/workspace/in_github/semantic_machines, inifile:
+collected 6 items
+test.py .....Counter({'False': 335489, 'True': 3393})
+size of filter: 56
+size of lookup: 10485864
+keys in lookup: 335489
+num bitvector needed: 357152
+num bitvector set: 335489
+.
+338882
 
 
 ## At last - changed digest to hexdigest and trimmed to last 4
@@ -70,33 +97,7 @@ num bitvector needed: 68635
 num bitvector set: 65146
 .                                                           [100%]                           [100%]
 
-## changed digest to hexdigest and trimmed to last 5
-
-platform darwin -- Python 3.6.1, pytest-3.4.1, py-1.5.2, pluggy-0.6.0
-rootdir: /Users/me/workspace/in_github/semantic_machines, inifile:
-collected 6 items
-test.py .....Counter({'False': 289682, 'True': 49200})
-size of filter: 56
-size of lookup: 10485864
-keys in lookup: 289682
-num bitvector needed: 317462
-num bitvector set: 289682
-.
-
-## Last 6:
-============================= test session starts ==============================
-platform darwin -- Python 3.6.1, pytest-3.4.1, py-1.5.2, pluggy-0.6.0
-rootdir: /Users/me/workspace/in_github/semantic_machines, inifile:
-collected 6 items
-test.py .....Counter({'False': 335489, 'True': 3393})
-size of filter: 56
-size of lookup: 10485864
-keys in lookup: 335489
-num bitvector needed: 357152
-num bitvector set: 335489
-.
-
-###### WOW!! TWO HASHES TWO CHARS MUCH WAO AND EFFICIENCY
+###### YEAH!! TWO HASHES OF [-2:] MUCH WAO AND EFFICIENCY
 
 ============================= test session starts ==============================
 platform darwin -- Python 3.6.1, pytest-3.4.1, py-1.5.2, pluggy-0.6.0
