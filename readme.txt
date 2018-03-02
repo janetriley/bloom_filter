@@ -67,42 +67,47 @@ See above - due to the false positive issue above, the % false positive and bits
 The keys in lookup is unaffected, however, and we can see later hashes require fewer keys. 
 ****
 
-key len	  keys in lookup    % false positive    num bits set
-6      	  335489 	    1%	   		65146   
-5	  289682	    14%			289682
-4	  65146		    19%			65146
+key len        keys in lookup        % false positive        num bits set
+6                 335489                  1%                     65146
+5                 289682                 14%                    289682
+4                  65146                 19%                     65146
 
 
-Hasing the term twice made a dramatic difference.  Using two hashes, with hash key trimmed to length 2, 
-key len	   keys in lookup    % false positive    num bits set
-2 @ 2each  256	   	     .05%    		 256
+Hashing the term twice made a dramatic difference.  Using two hashes, with hash key trimmed to length 2,
+key len         keys in lookup        % false positive        num bits set
+2 @ 2each          256                      .05%                 256
 
-Reading about bloom filters,  I heared 2-3% false positive mentioned as typical and acceptable. 
+
+Reading about bloom filters,  I heard 2-3% false positive mentioned as typical and acceptable.
 
 
 MAKE IT FAST
 I didn't optimize for speed, so this falls under Future Improvements.
 
-I would optimize hashing functions.  Stack Overflow says that jenkins and murmur are good choices because they distribute values well
-and don't take long to compute.  For a high throughput, time to hash would become very important.  I had compilation issues
-installing these packages, so went with the algorithms in hashlib. 
+I would optimize hashing functions.  Stack Overflow says that jenkins and murmur are good choices
+because they distribute values well and don't take long to compute.  For a high throughput,
+time to hash would become very important.  I had compilation issues installing these packages,
+so went with the algorithms in hashlib.
 
-These completed quickly on my laptop.  I'd run it with the profile option set and bigger wordlists to compile some stats. 
+The script completed quickly on my laptop.  I'd run it with the profile option set and
+bigger wordlists to compile some stats for execution time.
 
-If we needed optimization, I'd shift to using a more representative processor and data set. 
+For real optimization I'd shift to using a more production-like processor and data set.
 
 
 FUTURE DIRECTIONS
 Fix the byte array initialization and rerun calculations. 
 
-Would a set work better than a lookup table and indicies?  It costs to maintain the lookup table and adds some mental complexity.
-It's probably not a win, but I'm curious. 
-
-Could I get the same results by taking the first and last N characters of a single hash?  I'd have two keys for the cost of one hash. 
-Are they different enough to give the same kind of random variety as two hashes?
-
-If I wanted to experiment with different hashes, I'd add a field to BloomFilter
+Use a better hash. If I planned to experiment a lot, I'd add a field to BloomFilter
 for hash functions, and make the hash method iterate through them.
+
+Would a set work better than a lookup table and indicies?  It costs to maintain the lookup table and
+adds some mental complexity. Sets are probably not a win, but I'm curious.
+
+Could I get the same results by taking the first and last N characters of a single hash?
+I'd have two keys for the cost of one hash.  Are they different enough to give the same kind of
+random variety as two hashes?
+
 
 
 
