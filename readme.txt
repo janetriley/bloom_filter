@@ -8,8 +8,14 @@ RUN:
 Written in Python 3.6.  Lower 3x versions of python should be ok.
 To run:
     python3 bloom_filter.py wordlist.txt
+    python3 bloom_filter.py alice_in_wonderland_words.txt
+
 Tests:
     pytest test.py
+
+*** KNOWN ISSUE***  there's an encoding issue with wordlist.txt - the script stops when I run from the commandline,
+works with PyCharm.  The experiments were run with wordlist.txt.   alice_in_wonderland_words.txt is
+provided as an alternative.
 
 
 APPROACH:
@@ -96,7 +102,9 @@ For real optimization I'd shift to using a more production-like processor and da
 
 
 FUTURE DIRECTIONS
-Fix the byte array initialization and rerun calculations. 
+Fix the byte array initialization and rerun calculations.
+
+Figure out why the script can't read wordlist.txt if run from the command line.
 
 Use a better hash. If I planned to experiment a lot, I'd add a field to BloomFilter
 for hash functions, and make the hash method iterate through them.
