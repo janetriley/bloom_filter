@@ -1,7 +1,7 @@
 from bloom_filter import BloomFilter, ByteBitVector
 from collections import Counter
 from sys import getsizeof
-
+import logging
 
 def test_bits_init():
     bb = ByteBitVector(size=4)
@@ -30,19 +30,27 @@ def test_add_and_contains():
     assert bf.contains('one')
 
 def test_false_positives():
-    bloom = BloomFilter(size=1024, vector_type=ByteBitVector)
+    bloom = BloomFilter(size=10, vector_type=ByteBitVector)
     stats = Counter()
-
+    counter = 0
+    logging.basicConfig(level=logging.DEBUG)
     with open('./wordlist.txt', 'r', encoding='iso-8859-1') as fp:
         for line in fp:
             term = line.strip()
-            contains = str(bloom.contains(term))
-            stats.update([contains])
+            contains = bloom.contains(term)
+            if contains is True:
+                counter += 1
+                print( counter, "\t", term, "\tTerm already set")
+            stats.update([str(contains)])
             bloom.add(term)
+            if len(set(bloom.lookup.values())) > len(bloom.bitvector):
+                logging.debug("Fewer bits than keys ", term)
+
     print(stats)
-    print('size of filter:', getsizeof(bloom))
-    print('size of lookup:', getsizeof(bloom.lookup))
+    print('sys.getsizeof filter:', getsizeof(bloom))
+    print('sys.getsizeof lookup:', getsizeof(bloom.lookup))
     print('keys in lookup:', len(bloom.lookup))
 
-    print('sizeof bitvector needed:', getsizeof(bloom.bitvector.bits))
+    print('sys.getsizeof bitvector needed:', getsizeof(bloom.bitvector.bits))
     print('num bitvector set:', bloom.bitvector.num_set())
+    print(counter)
