@@ -4,18 +4,18 @@ from sys import getsizeof
 import logging
 
 def test_bits_init():
-    bb = ByteBitVector(size=4)
+    bb = ByteBitVector(initial_size=4)
     assert bb.bits == bytearray.fromhex('00000000')
 
 def test_bits_set_and_get():
-    bb = ByteBitVector(size=2)
+    bb = ByteBitVector(initial_size=2)
     assert not 1 in bb
     bb.set(1)
     assert 1 in bb
     assert bb.bits == bytearray.fromhex('0001')
 
 def test_vector_resizes_when_capacity_is_reached():
-    bb = ByteBitVector(size=2)
+    bb = ByteBitVector(initial_size=2)
     assert len(bb) is 2
     bb.set(1)
     assert len(bb) is 2

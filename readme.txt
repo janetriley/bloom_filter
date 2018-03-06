@@ -1,3 +1,13 @@
+TODO:
++ fixed hashes
++ removed lookup table
+[] investigagte issue reading wordlist from command line
+[] update writeup
+[] analyze hash size - num keys to num bits
+[] out of curiosity, try a set filter
+
+
+
 
 GOALS:
 A Bloom Filter provides a fast, memory-efficient way to look up set membership.
@@ -31,22 +41,22 @@ and returned the term as-is as the hash.
 
 Arrays make lookup simple if you know the index something is stored at. The Bloom Filter maintains a lookup dict,
 where the key is the hashed term and the value is the index in the array. It maintains a pointer to the next index to insert at.
-The bit vectors will increase their size as necessary behind the scenes. 
+The bit vectors will increase their size as necessary behind the scenes.
 
 I switched the boolean vector for a bytearray after the first pass, and broke the vector classes out of the filter to make it easier to experiment.
 One byte-length element in an array will be smaller than one pointer-length element in a list. If I tried a third kind of structure I would
-take a hard look at using inheritance for the bit vectors, to abstract out repetitions. 
+take a hard look at using inheritance for the bit vectors, to abstract out repetitions.
 
 I made a C++-flavored assumption that it would be better to allocate vectors in chunks.  I started with big 1024 chunks, but as the hashing
-got more efficient, the final size dropped. I ended with a growth factor of 10. 
+got more efficient, the final size dropped. I ended with a growth factor of 10.
 
 
 MAKE IT RIGHT
 How do I know if it's right? It should  use little memory, be fast, and provide few false positives. This isn't for a real project, so
 there's no performance target. I aimed for smaller and more correct.
 
-How do I know if something's a false positive, without loading a hugew wordlist into memory?  Assuming the wordlist is unique, it should
-report a term is not contained before it's inserted, and contained afterward.  test.py::test_false_positives() checks this. 
+How do I know if something's a false positive, without loading a huge wordlist into memory?  Assuming the wordlist is unique, it should
+report a term is not contained before it's inserted, and contained afterward.  test.py::test_false_positives() checks this.
 
 ***********
 KNOWN ISSUE
@@ -57,20 +67,20 @@ extended with a new array. The new one should be filled with zeros. In the debug
 /KNOWN ISSUE
 ***********
 
-I can measure smaller by the size of the bit vector.  I also checked the number of values set.  I'm curious if the values are 
+I can measure smaller by the size of the bit vector.  I also checked the number of values set.  I'm curious if the values are
 distributed evenly, or if there are only a few flags set.  I'd have to think more about how to determine if it's good-
-I'd like to see fewer negatives, and would probably just observe under different conditions to see what the average is. 
-However, I'd rather burn memory than performance time, and wouldn't make it a priority unless there were memory constraints. 
+I'd like to see fewer negatives, and would probably just observe under different conditions to see what the average is.
+However, I'd rather burn memory than performance time, and wouldn't make it a priority unless there were memory constraints.
 
-There are a few tests in tests.py, mainly to ensure the bit vectors are working properly. 
+There are a few tests in tests.py, mainly to ensure the bit vectors are working properly.
 
 For the first-pass mock hash, it required N bits, as you'd expect.  For the second hash, I returned the full digest value and got about the same result.
-I trimmed the returned hash size to 8, then 6, (1% false positive, , 5, and 4.   
+I trimmed the returned hash size to 8, then 6, (1% false positive, , 5, and 4.
 
 
-**** 
-See above - due to the false positive issue above, the % false positive and bits set is inaccurate. 
-The keys in lookup is unaffected, however, and we can see later hashes require fewer keys. 
+****
+See above - due to the false positive issue above, the % false positive and bits set is inaccurate.
+The keys in lookup is unaffected, however, and we can see later hashes require fewer keys.
 ****
 
 key len        keys in lookup        % false positive        num bits set
