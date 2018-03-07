@@ -6,7 +6,7 @@ from sys import getsizeof
 
 class ByteBitVector:
     """ A bit vector backed by a bytearray """
-    GROW_BY = 1 #128  #10 #1024
+    GROW_BY = 1  # 128  #10 #1024
 
     def __init__(self, initial_size=GROW_BY):
         self.bits = bytearray()
@@ -88,11 +88,11 @@ class BloomFilter:
         term = term.encode('utf-8')
         md5_hash = md5(term).hexdigest()
         sha_hash = sha1(term).hexdigest()
-        NUM=6
+        NUM = 6
         return (md5_hash[-NUM:], sha_hash[-NUM:])
         # trying different combinations
-        #return (sha_hash[:NUM], sha_hash[-NUM:])
-        #return (md5_hash[:NUM], md5_hash[-NUM:])
+        # return (sha_hash[:NUM], sha_hash[-NUM:])
+        # return (md5_hash[:NUM], md5_hash[-NUM:])
 
 
 if __name__ == '__main__':
