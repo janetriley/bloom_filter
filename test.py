@@ -3,7 +3,7 @@ from collections import Counter
 from sys import getsizeof
 import logging
 
-def test_bits_init():
+def test_bits_initted_to_zeros():
     bb = ByteBitVector(initial_size=4)
     assert bb.bits == bytearray.fromhex('00000000')
 
@@ -22,35 +22,32 @@ def test_vector_resizes_when_capacity_is_reached():
     bb.set(2)
     assert 2 in bb
 
-
-def test_add_and_contains():
-    bf = BloomFilter(size=4)
-    assert not bf.contains('one')
+def test_filter_add_and_contains():
+    bf = BloomFilter(initial_size=4)
+    assert not 'one' in bf
     bf.add('one')
-    assert bf.contains('one')
+    assert 'one' in bf
 
 def test_false_positives():
-    bloom = BloomFilter(size=10, vector_type=ByteBitVector)
+    """ see how well it does at false positives"""
+    bloom = BloomFilter(initial_size=10, vector_type=ByteBitVector)
     stats = Counter()
     counter = 0
     logging.basicConfig(level=logging.DEBUG)
     with open('./wordlist.txt', 'r', encoding='iso-8859-1') as fp:
         for line in fp:
             term = line.strip()
-            contains = bloom.contains(term)
+            contains = term in bloom
             if contains is True:
                 counter += 1
-                print( counter, "\t", term, "\tTerm already set")
+                print( counter, "\tTerm already set:\t", term )
             stats.update([str(contains)])
             bloom.add(term)
-            if len(set(bloom.lookup.values())) > len(bloom.bitvector):
-                logging.debug("Fewer bits than keys ", term)
 
-    print(stats)
+    print('Count of false positives:', stats)
     print('sys.getsizeof filter:', getsizeof(bloom))
-    print('sys.getsizeof lookup:', getsizeof(bloom.lookup))
-    print('keys in lookup:', len(bloom.lookup))
-
     print('sys.getsizeof bitvector needed:', getsizeof(bloom.bitvector.bits))
+    print('num bits in vector:', len(bloom.bitvector))
     print('num bitvector set:', bloom.bitvector.num_set())
+
     print(counter)

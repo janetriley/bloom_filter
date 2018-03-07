@@ -6,14 +6,12 @@ from sys import getsizeof
 
 class ByteBitVector:
     """ A bit vector backed by a bytearray """
-    GROW_BY = 128  # 100 #1024
+    GROW_BY = 128  # 10 #1024
 
     def __init__(self, initial_size=GROW_BY):
-        MIN_SIZE = 2
         self.bits = bytearray()
-        self.size=len(self.bits)
-        self.__grow(max(initial_size, MIN_SIZE))
-
+        self.size = len(self.bits)
+        self.__grow(initial_size)
 
     def set(self, index):
         """ Add an element to the bit vector """
@@ -28,6 +26,11 @@ class ByteBitVector:
         return sum(b for b in self.bits)
 
     def __contains__(self, index):
+        """
+        Is this bit set?
+        :param index: byte to examine
+        :return: boolean
+        """
         if index < self.size:
             return self.bits[index] == 1
         return False
@@ -45,42 +48,51 @@ class ByteBitVector:
 
 
 class BloomFilter:
-
-    NOT_SET = 0 # Leave the first bit as unset, as a default for the getter.
-
-    def __init__(self, vector_type=ByteBitVector, size=0):
-        self.lookup = {}
-        self.bitvector = vector_type(size)
+    def __init__(self, vector_type=ByteBitVector, initial_size=0):
+        self.bitvector = vector_type(initial_size)
 
     def add(self, item):
-        indices = self.indexes(item)
+        """
+        Add an item
+        :param item: an object to store
+        """
+        indices = self.__indexes(item)
         for key in indices:
             self.bitvector.set(key)
 
-    def contains(self, term):
-        indices = self.indexes(term)
-        all_set =  all(index in self.bitvector for index in indices)
+    def __contains__(self, item):
+        """
+        Has the bit been set for this item?
+        :param item: object to look up
+        :return: boolean
+        """
+        indices = self.__indexes(item)
+        all_set = all(index in self.bitvector for index in indices)
         return all_set
 
-    def indexes(self, term):
+    @classmethod
+    def __indexes(cls, term):
         # Get the bit vector indexes for the hash term
-
-        keys = self.hash(term)
-        #convert to ints
-        keys = [ int( '0x' + key, 0) for key in keys]
+        keys = cls.hash(term)
+        # convert to ints
+        keys = [int('0x' + key, 0) for key in keys]
         return keys
 
     @classmethod
     def hash(cls, term):
+        """
+        Generate lookup indexes for the term
+        :param term: a hashable value
+        :return: a tuple of strings, each string a hex values
+        """
         term = term.encode('utf-8')
         md5_hash = md5(term).hexdigest()
         sha_hash = sha1(term).hexdigest()
         return (md5_hash[:6], md5_hash[-6:])
-
-        #return (md5_hash[-6:], sha_hash[-6:])
-        #return (md5_hash[-5:], md5_hash[:5], sha_hash[-5:], sha_hash[:5])
-        #return (md5_hash[-2:], sha_hash[-2:])
-
+        # trying different combinations
+        # return (md5_hash[-6:], sha_hash[-6:])
+        # return (md5_hash[-5:], md5_hash[:5], sha_hash[-5:], sha_hash[:5])
+        # return (md5_hash[-2:], sha_hash[-2:])
 
 
 if __name__ == '__main__':
@@ -94,24 +106,21 @@ if __name__ == '__main__':
         logging.basicConfig(level=logging.DEBUG)
 
     bloom = BloomFilter()
-    false_positives =0
+    false_positives = 0
     line_counter = 0.0
     logging.debug('loading {}'.format(args.wordlist))
     with open(args.wordlist, 'r', encoding='iso-8859-1') as fp:
         for line in fp:
             line = line.strip()
             line_counter += 1
-            already_there = bloom.contains(line)
+            already_there = line in bloom
             if already_there:
                 false_positives += 1
             bloom.add(line)
 
-
     print('Num false positives: ', false_positives)
     print('Percent false positives: {:05f}'.format(false_positives / line_counter))
-    #print('sys.getsizeof filter:', getsizeof(bloom))
-    print('sys.getsizeof lookup table:', getsizeof(bloom.lookup))
-    print('keys in lookup:', len(bloom.lookup))
+    # print('sys.getsizeof filter:', getsizeof(bloom))
     print('elements in bitvector:', len(bloom.bitvector.bits))
     print('sys.getsizeof bitvector:', getsizeof(bloom.bitvector.bits))
     print('num bits set in vector:', bloom.bitvector.num_set())
