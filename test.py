@@ -44,10 +44,12 @@ def test_false_positives():
             stats.update([str(contains)])
             bloom.add(term)
 
-    print('Count of false positives:', stats)
+    false_positives = float(stats[True]/sum(stats.values()))
+    print('Count of false positives:', stats, "{:0.04f}%".format(100 * false_positives))
     print('sys.getsizeof filter:', getsizeof(bloom))
     print('sys.getsizeof bitvector needed:', getsizeof(bloom.bitvector.bits))
     print('num bits in vector:', len(bloom.bitvector))
     print('num bitvector set:', bloom.bitvector.num_set())
+    # A bit arbitrary - descriptions of bloom filters said 2-3% false positives is pretty good
+    assert false_positives <= .03
 
-    print(counter)
