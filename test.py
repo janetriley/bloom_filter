@@ -40,9 +40,10 @@ def test_false_positives():
             contains = term in bloom
             if contains is True:
                 counter += 1
-                print( counter, "\tTerm already set:\t", term )
+                logging.debug( counter, "\tTerm already set:\t", term )
             stats.update([str(contains)])
             bloom.add(term)
+            assert term in bloom  # no false negatives
 
     false_positives = float(stats[True]/sum(stats.values()))
     print('Count of false positives:', stats, "{:0.04f}%".format(100 * false_positives))
