@@ -1,25 +1,19 @@
 GOALS:
 
-A Bloom Filter provides a fast, memory-efficient way to look up
+A Bloom filter provides a fast, memory-efficient way to look up
 set membership. It's used in scenarios where a normal in-memory lookup
 is too slow or there are too many terms to store, and where a certain
 amount of false positives is acceptable.
+
+This is an implementation of the Bloom filter code kata (http://codekata.com/kata/kata05-bloom-filters/).
 
 RUN:
 Written in Python 3.6.  Lower 3x versions of python should be ok.
 To run:
     python3 bloom_filter.py wordlist.txt
-    python3 bloom_filter.py alice_in_wonderland_words.txt
 
 Tests:
     pytest test.py
-
-*** KNOWN ISSUE***
-There's an encoding issue with wordlist.txt - the
-script stops when I run from the command line, works with PyCharm.
-The experiments were run with wordlist.txt.
-
-alice_in_wonderland_words.txt is provided as an alternative.
 
 
 APPROACH:
@@ -29,7 +23,7 @@ APPROACH:
 MAKE IT RUN: THE MECHANICS
 
 Bloom filters support two operations: add, and lookup.  There is no delete.
-The Bloom Filter class provides this API.
+The BloomFilter class provides this API.
 
 
 Arrays make lookup simple if you know the index something is stored
@@ -64,7 +58,7 @@ profiling information on runtime.  The comparisons are in
 notes/bloom_filter_performance_numbers.pdf .
 
 
-In reading about Bloom Filters, I've heard 2-3% false positivesis typical and
+In reading about Bloom filters, I've heard 2-3% false positivesis typical and
 appropriate. T the biggest determiner of false positives was key length.
 Two hashes at length 6 produced about 5%; length 7 produced .0003%.
 
@@ -102,9 +96,8 @@ processor and data set.
 
 FUTURE DIRECTIONS
 
-
 * Use a better hash. If I planned to experiment a
-lot, I'd make the Bloom Filter hash functions a configurable tuple of
+lot, I'd make the Bloom filter hash functions a configurable tuple of
 lambdas and change the hash function to iterate through them.
 
 * If space were really at a premium, I could start setting actual bits
@@ -112,5 +105,3 @@ lambdas and change the hash function to iterate through them.
   1/8. I'd have to calculate the index with value/8, bit with value %
   8, and use bitwise operations to set and get the bit within the
   byte.
-
-TODO: [] investigate issue reading wordlist from command line
