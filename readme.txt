@@ -1,13 +1,3 @@
-TODO:
-+ fixed hashes
-+ removed lookup table
-[] investigagte issue reading wordlist from command line
-[] update writeup
-[] analyze hash size - num keys to num bits
-
-
-
-
 GOALS:
 A Bloom Filter provides a fast, memory-efficient way to look up set membership.
 It's used in scenarios where a normal in-memory lookup is too slow or there are
@@ -16,13 +6,13 @@ too many terms to store, and where a certain amount of false positives is accept
 RUN:
 Written in Python 3.6.  Lower 3x versions of python should be ok.
 To run:
-    python3 bloom_filter.py wordlist.txt
-    python3 bloom_filter.py alice_in_wonderland_words.txt
+   python3 bloom_filter.py wordlist.txt
+   python3 bloom_filter.py alice_in_wonderland_words.txt
 
 Tests:
-    pytest test.py
+   pytest test.py
 
-*** KNOWN ISSUE***  there's an encoding issue with wordlist.txt - the script stops when I run from the commandline,
+*** KNOWN ISSUE***  there's an encoding issue with wordlist.txt - the script stops when I run from the command line,
 works with PyCharm.  The experiments were run with wordlist.txt.   alice_in_wonderland_words.txt is
 provided as an alternative.
 
@@ -82,9 +72,6 @@ For real optimization I'd shift to using a more production-like processor and da
 
 
 FUTURE DIRECTIONS
-
-TODO: Figure out why the script can't read wordlist.txt if run from the command line.
-
 * Use a better hash. If I planned to experiment a lot, I'd make the Bloom Filter hash functions a configurable
 tuple of lambdas and change the hash function to iterate through them.
 
@@ -92,3 +79,5 @@ tuple of lambdas and change the hash function to iterate through them.
 drop memory use to 1/8. I'd have to calculate the index with value/8, bit with value % 8, and use bitwise operations to
 set and get the bit within the byte.
 
+TODO:
+[] investigate issue reading wordlist from command line
